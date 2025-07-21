@@ -3,24 +3,31 @@
     <!-- 聊天室頭部 -->
     <div class="chat-header">
       <h2>聊天室</h2>
-      <div class="online-status">
-        <span class="status-dot"></span>
-        線上
+      <div class="header-actions">
+        <button @click="clearMessages" class="clear-button" title="清除聊天記錄">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="online-status">
+          <span class="status-dot"></span>
+          線上
+        </div>
       </div>
     </div>
 
     <!-- 消息區域 -->
     <div class="messages-container" ref="messagesContainer">
       <div 
-        v-for="(message, index) in messages" 
-        :key="index"
+        v-for="message in messages" 
+        :key="message.id"
         class="message-item"
         :class="{ 'own-message': message.isOwn }"
       >
         <div class="message-content">
           <div class="message-header">
-            <span class="username">{{ message.username }}</span>
-            <span class="timestamp">{{ message.time }}</span>
+            <span class="username">{{ message.sender }}</span>
+            <span class="timestamp">{{ formatTime(message.timestamp) }}</span>
           </div>
           <div class="message-text">{{ message.text }}</div>
         </div>
@@ -46,47 +53,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
+import { useChatService } from '../services/chat.service.js'
+import { formatTime } from '../models/message.model.js'
 
 const newMessage = ref('')
 const messagesContainer = ref(null)
 
-// 初始消息數據（模擬截圖中的內容）
-const messages = ref([
-  {
-    username: '系統',
-    text: '歡迎來到聊天室！',
-    time: '11:34',
-    isOwn: false
-  },
-  {
-    username: '系統',
-    text: '歡迎來到聊天室！',
-    time: '11:34',
-    isOwn: false
-  },
-  {
-    username: '系統',
-    text: '歡迎來到聊天室！',
-    time: '11:34',
-    isOwn: false
-  }
-])
+// 使用聊天服務
+const { messages, sendMessage: sendApiMessage, clearMessages } = useChatService()
 
-// 發送消息
-const sendMessage = () => {
+// 發送消息到 API
+const sendMessage = async () => {
   if (newMessage.value.trim()) {
-    const now = new Date()
-    const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-    
-    messages.value.push({
-      username: '我',
-      text: newMessage.value.trim(),
-      time: timeString,
-      isOwn: true
-    })
-    
+    const messageText = newMessage.value.trim()
     newMessage.value = ''
+    
+    // 使用 API 服務發送訊息
+    await sendApiMessage(messageText, '我')
     
     // 滾動到底部
     nextTick(() => {
@@ -94,6 +78,13 @@ const sendMessage = () => {
     })
   }
 }
+
+// 監聽訊息變化，自動滾動到底部
+watch(messages, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+}, { deep: true })
 
 // 滾動到底部
 const scrollToBottom = () => {
@@ -133,6 +124,34 @@ onMounted(() => {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clear-button {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clear-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.clear-button:active {
+  transform: scale(0.95);
 }
 
 .online-status {
