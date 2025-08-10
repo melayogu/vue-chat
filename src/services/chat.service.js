@@ -1,4 +1,4 @@
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { createMessage } from '../models/message.model.js'
 import authService from './auth.service.js'
 
@@ -60,9 +60,11 @@ class ChatService {
    */
   async sendStreamMessage(message) {
     try {
-      // 準備請求 headers，包含認證信息
+      // 準備請求 headers，包含認證信息和應用程式參數
       const headers = {
         'Content-Type': 'application/json',
+        'Platform': 'web',
+        'App': 'Vuejs3Chat'
       }
       
       // 如果用戶已登入，添加認證 header
@@ -73,7 +75,11 @@ class ChatService {
       const response = await fetch(`${this.apiUrl}/stream`, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify({ message: message })
+        body: JSON.stringify({ 
+          message: message,
+          platform: 'web',
+          app: 'Vuejs3Chat'
+        })
       })
 
       if (!response.ok) {
