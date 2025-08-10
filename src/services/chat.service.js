@@ -1,5 +1,6 @@
 import { ref, reactive } from 'vue'
 import { createMessage } from '../models/message.model.js'
+import authService from './auth.service.js'
 
 /**
  * Chat Service 類別
@@ -8,7 +9,7 @@ import { createMessage } from '../models/message.model.js'
 class ChatService {
   constructor() {
     this.messages = ref([])
-    this.apiUrl = 'https://localhost:7140/api/OpenAiApi' // 後端 API 路由
+    this.apiUrl = 'https://localhost:7123/api/OpenAiApi' // 後端 API 路由
     
     // 添加初始歡迎訊息
     this.initializeWelcomeMessages()
@@ -59,11 +60,19 @@ class ChatService {
    */
   async sendStreamMessage(message) {
     try {
+      // 準備請求 headers，包含認證信息
+      const headers = {
+        'Content-Type': 'application/json',
+      }
+      
+      // 如果用戶已登入，添加認證 header
+      if (authService.getAuthStatus().value) {
+        headers['Authorization'] = `Bearer ${authService.getToken().value}`
+      }
+
       const response = await fetch(`${this.apiUrl}/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify({ message: message })
       })
 

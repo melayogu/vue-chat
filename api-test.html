@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 測試工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vue Chat - 後端 API 測試工具</h1>
+    
+    <div class="test-section">
+        <h2>連接測試</h2>
+        <p>測試後端 API 是否可以訪問</p>
+        <button onclick="testConnection()">測試連接</button>
+        <div id="connectionResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>登入測試</h2>
+        <p>測試登入功能</p>
+        <input type="text" id="username" placeholder="用戶名" value="test">
+        <input type="password" id="password" placeholder="密碼" value="test">
+        <button onclick="testLogin()">測試登入</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>API 路徑測試</h2>
+        <p>測試不同的 API 路徑</p>
+        <button onclick="testApiPath('/Login/LoginAct')">測試 /Login/LoginAct</button>
+        <button onclick="testApiPath('/api/Login/LoginAct')">測試 /api/Login/LoginAct</button>
+        <div id="pathResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://localhost:7123';
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '<div class="result">測試中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/Login/LoginAct`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        username: 'test',
+                        password: 'test'
+                    })
+                });
+                
+                const result = await response.text();
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        狀態: ${response.status} ${response.statusText}
+                        Headers: ${JSON.stringify([...response.headers.entries()], null, 2)}
+                        Body: ${result}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        錯誤: ${error.message}
+                        
+                        可能的原因:
+                        1. 後端服務未啟動
+                        2. CORS 設定問題
+                        3. 路徑錯誤
+                        4. SSL 憑證問題
+                    </div>
+                `;
+            }
+        }
+
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            resultDiv.innerHTML = '<div class="result">登入測試中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/Login/LoginAct`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        狀態: ${response.status}
+                        登入結果: ${JSON.stringify(result, null, 2)}
+                        
+                        ${result.isSuccess ? '✅ 登入成功!' : '❌ 登入失敗'}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        登入錯誤: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testApiPath(path) {
+            const resultDiv = document.getElementById('pathResult');
+            resultDiv.innerHTML = '<div class="result">測試路徑中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}${path}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        username: 'test',
+                        password: 'test'
+                    })
+                });
+                
+                const result = await response.text();
+                resultDiv.innerHTML = `
+                    <div class="result">
+                        路徑: ${path}
+                        狀態: ${response.status} ${response.statusText}
+                        回應: ${result}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        路徑 ${path} 測試失敗: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // 頁面載入時自動測試連接
+        window.onload = function() {
+            console.log('測試工具已載入，準備測試 API 連接...');
+        };
+    </script>
+</body>
+</html>
