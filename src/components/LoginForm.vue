@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-form">
-      <h2>用戶登入(GoodGPT網頁版本)</h2>
+      <h2>用戶登入<br>(GoodGPT網頁版本)</h2>
       
       <!-- 錯誤訊息顯示 -->
       <div v-if="errorMessage" class="error-message">
