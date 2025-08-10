@@ -9,7 +9,7 @@ import authService from './auth.service.js'
 class ChatService {
   constructor() {
     this.messages = ref([])
-    this.apiUrl = 'https://localhost:7123/api/OpenAiApi' // 後端 API 路由
+    this.apiUrl = 'https://www.godmelayogu.com/LandScape/api/OpenAiApi' // 後端 API 路由
     
     // 添加初始歡迎訊息
     this.initializeWelcomeMessages()

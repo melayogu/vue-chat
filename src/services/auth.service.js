@@ -9,7 +9,7 @@ class AuthService {
     this.isAuthenticated = ref(false)
     this.user = ref(null)
     this.token = ref(null)
-    this.apiUrl = 'https://localhost:7123' // 後端基礎路由，不需要 /api 前綴
+    this.apiUrl = 'https://www.godmelayogu.com/LandScape' // 後端基礎路由，不需要 /api 前綴
     
     // 檢查本地存儲中是否有已儲存的認證信息
     this.initializeAuth()
