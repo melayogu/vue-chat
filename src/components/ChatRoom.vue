@@ -97,13 +97,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
 import { useChatService } from '../services/chat.service.js'
 import { formatTime } from '../models/message.model.js'
 
 const newMessage = ref('')
 const messagesContainer = ref(null)
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(true) // 桌面版預設開啟，手機版預設關閉
 const currentChatId = ref('1')
 const currentChatTitle = ref('聊天室')
 
@@ -141,6 +141,20 @@ const formatDate = (date) => {
 // 切換側邊列
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
+}
+
+// 初始化側邊選單狀態
+const initSidebarState = () => {
+  // 桌面版預設開啟，手機版預設關閉
+  sidebarOpen.value = window.innerWidth > 768
+}
+
+// 監聽視窗大小變化
+const handleResize = () => {
+  // 在桌面版自動開啟側邊選單，手機版保持當前狀態
+  if (window.innerWidth > 768) {
+    sidebarOpen.value = true
+  }
 }
 
 // 創建新對話
@@ -250,6 +264,12 @@ const scrollToBottom = () => {
 
 onMounted(() => {
   scrollToBottom()
+  initSidebarState()
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -273,15 +293,14 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
-  position: absolute;
-  left: -280px;
-  top: 0;
-  bottom: 0;
+  position: relative;
+  flex-shrink: 0;
+  transform: translateX(-100%);
   z-index: 10;
 }
 
 .sidebar-open {
-  left: 0;
+  transform: translateX(0);
 }
 
 .sidebar-header {
@@ -624,11 +643,6 @@ onMounted(() => {
 @media (min-width: 769px) {
   .sidebar {
     position: relative;
-    left: 0;
-  }
-  
-  .sidebar-open {
-    left: 0;
   }
   
   .main-chat {
@@ -638,16 +652,16 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .sidebar {
+    position: absolute;
     width: 100%;
-    left: -100%;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
   }
   
   .sidebar-open {
-    left: 0;
-  }
-  
-  .sidebar-toggle {
-    display: block;
+    transform: translateX(0);
   }
   
   .chat-header {
